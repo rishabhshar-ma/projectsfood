@@ -1,0 +1,81 @@
+<script>
+    // fetch('/check-user-loggedIn').then(res => res.json()).then(data => {
+    //     let {login} = data
+    //     let loginLink = document.getElementById("loginLink")
+    //     if (loginLink) {
+    //         if (login) {
+    //             loginLink.innerHTML = `<a href="/users/" class="flaticon-user-1"></a>`
+    //         } else {
+    //             loginLink.innerHTML = `<a href="/user-login" class="flaticon-user-1"></a>`
+    //         }
+    //     }
+    // });
+</script>
+
+
+<!--Scroll to top-->
+<div class="scroll-to-top scroll-to-target" data-target="html"><span class="fa fa-arrow-up"></span></div>
+
+<script src="../bootstrap/js/bootstrap.js"></script>
+<!--<script src="../javascripts/jquery.min.js"></script>-->
+<script src="../assets/js/jquery.js"></script>
+<script src="../assets/js/popper.min.js"></script>
+<script src="../assets/js/bootstrap.min.js"></script>
+<script src="../assets/js/jquery.mCustomScrollbar.concat.min.js"></script>
+<script src="../assets/js/jquery.fancybox.js"></script>
+<script src="../assets/js/appear.js"></script>
+<script src="../assets/js/parallax.min.js"></script>
+<script src="../assets/js/tilt.jquery.min.js"></script>
+<script src="../assets/js/jquery.paroller.min.js"></script>
+<script src="../assets/js/owl.js"></script>
+<script src="../assets/js/wow.js"></script>
+<script src="../assets/js/nav-tool.js"></script>
+<script src="../assets/js/jquery-ui.js"></script>
+<script src="../assets/js/script.js"></script>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-validate/1.19.5/jquery.validate.min.js"
+        integrity="sha512-rstIgDs0xPgmG6RX1Aba4KV5cWJbAMcvRCVmglpam9SoHZiUCyQVDdH2LPlxoHtrv17XWblE/V/PP+Tr04hbtA=="
+        crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+
+<script>
+    const LogoutAdmin = (e) => {
+        e.preventDefault();
+        if (confirm("Are you sure to Logout?")) {
+            const http = new XMLHttpRequest();
+            http.onreadystatechange = function () {
+                if (this.readyState === 4 && this.status === 200) {
+                    // console.log(this.response);
+                    if (this.response === "success") {
+                        window.location.href = "/admin-login";
+                    }
+                }
+            }
+            http.open("GET", "/logout-admin", true);
+            http.send();
+        }
+    }
+
+    const goShoppingCart = () => {
+        window.location.href = "/shopping-cart";
+    }
+
+    $(document).ready(() => {
+        getCartCount();
+    });
+
+    const getCartCount = () => {
+        let http = new XMLHttpRequest();
+        http.onreadystatechange = function () {
+            if (this.readyState === 4 && this.status === 200) {
+                // console.log(this.response);
+                if (this.response === "jwt") {
+                    $(".total-cart").text("0");
+                } else {
+                    $(".total-cart").text(this.response);
+                }
+            }
+        }
+        http.open("POST", "/cart-count", true);
+        http.send();
+    }
+</script>

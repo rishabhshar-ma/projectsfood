@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Comida Restaurant | Home Page</title>
+
+    <%- include('header-files-new') %>
+</head>
+
+
+<body onload="getProduct()">
+
+<%- include('guest_navbar') %>
+
+<!-- Products -->
+<div class="container py-5">
+    <div class="text-center">
+        <h2 class="text-info">Latest Products</h2>
+    </div>
+
+    <div class="row" id="productsDiv"></div>
+</div>
+
+<%- include("footer_scripts") %>
+
+<script>
+    var AddToCart = (object) => {
+        // console.log(object);
+
+        var formData = new FormData();
+        formData.append("action", "add");
+        formData.append("productObject", JSON.stringify(object));
+
+        var http = new XMLHttpRequest();
+        http.onreadystatechange = function () {
+            if (this.readyState == 4 && this.status == 200) {
+                // console.log(this.response);
+
+                if (this.response == "success") {
+                    Swal.fire({
+                        icon: "success",
+                        title: "Product Added In Cart"
+                    });
+                } else {
+                    Swal.fire({
+                        icon: "warning",
+                        title: "Product Already In Cart"
+                    });
+                }
+
+            }
+        }
+        http.open("POST", "/add-to-cart", true);
+        http.send(formData);
+    }
+
+    var getProduct = () => {
+        var http = new XMLHttpRequest();
+        http.onreadystatechange = function () {
+            if (this.readyState == 4 && this.status == 200) {
+                // console.log(JSON.parse(this.response));
+                var products = JSON.parse(this.response);
+
+
+                var cardsHTML = ``;
+
+                products.forEach(value => {
+                    // console.log(value);
+
+                    cardsHTML += `<div class="col-lg-3">`;
+                    cardsHTML += `<div class="card">`
+                    cardsHTML += `<img src="${value.photo}" height="200" alt="">`
+
+                    cardsHTML += `<div class="card-body text-center">`;
+                    cardsHTML += `<h5>${value.product_name}</h5>`;
+
+                    cardsHTML += `<del class="text-danger">&#x20b9;${value.price}</del>`;
+                    var discountPrice = value.price - (value.price * value.discount) / 100;
+                    cardsHTML += `<span class="text-success mx-5">&#x20b9;${Math.round(discountPrice)}</span>`;
+                    cardsHTML += `<span class="">${value.discount}%</span>`;
+
+                    cardsHTML += '<button onclick=\'AddToCart(' + JSON.stringify(value) + ')\' type="button" class="btn btn-info mt-3 text-white">Add To Cart <i class="fa fa-shopping-cart"></i></button>';
+
+                    cardsHTML += `</div>`;
+
+                    cardsHTML += `</div>`
+                    cardsHTML += `</div>`
+                });
+
+                document.getElementById("productsDiv").innerHTML = cardsHTML;
+
+            }
+        }
+        http.open("GET", "/get-products", true);
+        http.send();
+    }
+</script>
+
+</body>
+</html>

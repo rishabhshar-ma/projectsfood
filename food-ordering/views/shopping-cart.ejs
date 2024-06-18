@@ -1,0 +1,172 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Cart</title>
+    <style>
+        th {
+            color: #C19D60;
+        }
+    </style>
+    <%- include('header-files-new') %>
+</head>
+<body class="hidden-bar-wrapper" onload="GetCartProducts()">
+
+<div class="page-wrapper">
+    <% if(customer) { %>
+        <%- include('users/user_navbar') %>
+    <% } else { %>
+        <%- include('guest_navbar') %>
+    <% } %>
+
+    <%- include('bread-crumb') %>
+
+    <div class="container py-5">
+        <div id="foodCart"></div>
+    </div>
+
+    <%- include('footer') %>
+</div>
+
+<%- include("footer_scripts") %>
+
+<script>
+    const GetCartProducts = () => {
+        const formData = new FormData();
+        formData.append("action", "get-products");
+
+        const http = new XMLHttpRequest();
+        http.onreadystatechange = function () {
+            if (this.readyState === 4 && this.status === 200) {
+                const response = JSON.parse(this.response);
+                // console.log(response);
+
+                if (response.length === 0) {
+                    document.getElementById("foodCart").innerHTML = `<div class="text-center shadow"><img src="/cart.jpg" alt="cart" style="width: 60%"></div>`
+                } else {
+                    const cart = response;
+
+                    let tbodyHTML = `<div class="">
+            <table class="table table-bordered table-dark">
+                <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Product Name</th>
+                    <th>Price</th>
+                    <th>Discount</th>
+                    <th>Net Price</th>
+                    <th class="text-center">Quantity</th>
+                    <th>Total</th>
+                    <th>Remove</th>
+                </tr>
+                </thead>
+                <tbody>`;
+
+                    let grandTotal = 0;
+                    let discount = 0;
+                    let netPrice = 0;
+
+                    cart.forEach((value, index) => {
+                        // console.log(value);
+                        tbodyHTML += `<tr>`;
+                        tbodyHTML += `<td>${index + 1}</td>`;
+
+                        tbodyHTML += `<td>`;
+                        tbodyHTML += `<img src="${value.photo}" style="height: 60px !important; border-radius: 6px" alt=""> <br>`;
+                        tbodyHTML += `${value.product_name}`;
+                        tbodyHTML += `</td>`;
+
+                        tbodyHTML += `<td>&#x20b9;${value.price}</td>`;
+                        tbodyHTML += `<td>${value.discount}%</td>`;
+
+                        discount = parseInt(value.price) * parseInt(value.discount) / 100;
+                        netPrice = parseInt(value.price) - discount;
+                        grandTotal += netPrice * parseInt(value.quantity);
+
+                        tbodyHTML += `<td>&#x20b9;${netPrice}</td>`;
+
+                        tbodyHTML += `<td class="text-center">`;
+                        tbodyHTML += `<button onclick="UpdateQuantity('minus', ${value.id})" type="button" class="btn btn-sm btn-warning"><i class="fa fa-minus"></i></button>`;
+                        tbodyHTML += `<span class="mx-2">${value.quantity}</span>`;
+                        tbodyHTML += `<button onclick="UpdateQuantity('plus', ${value.id})" type="button" class="btn btn-sm btn-warning"><i class="fa fa-plus"></i></button>`;
+                        tbodyHTML += `</td>`;
+
+                        tbodyHTML += `<td>&#x20b9;${netPrice * parseInt(value.quantity)}</td>`;
+
+                        tbodyHTML += `<td>`;
+                        tbodyHTML += `<button onclick="RemoveProduct(${value.id})" type="button" class="btn btn-sm btn-danger"><i class="fa fa-times"></i></button>`;
+                        tbodyHTML += `</td>`;
+
+                        tbodyHTML += `</tr>`;
+                    });
+
+                    tbodyHTML += `<tr>`;
+                    tbodyHTML += `<td colspan="6"></td>`;
+                    tbodyHTML += `<td style="font-size: 1.2rem">Total Bill: &#x20b9;${grandTotal}</td>`;
+                    tbodyHTML += `</tr>`;
+
+                    tbodyHTML += `<tr>`;
+                    tbodyHTML += `<td colspan="6"></td>`;
+                    tbodyHTML += `<td>`;
+
+                    // Proceed To Checkout
+                    tbodyHTML += `<a href="/checkout" class="theme-btn btn-style-two">Proceed To Checkout</a>`;
+                    tbodyHTML += `</td>`;
+                    tbodyHTML += `</tr></tbody></table></div>`;
+
+                    document.getElementById("foodCart").innerHTML = tbodyHTML;
+                }
+            }
+        }
+        http.open("POST", "/add-to-cart", true);
+        http.send(formData);
+    }
+
+    const RemoveProduct = (pid) => {
+        if (confirm("Are you sure")) {
+            const formData = new FormData();
+            formData.append("action", "remove");
+            formData.append("pid", pid);
+
+            const http = new XMLHttpRequest();
+            http.onreadystatechange = function () {
+                if (this.readyState === 4 && this.status === 200) {
+                    // console.log(this.response);
+                    // if (this.response === "removed") {
+                    GetCartProducts();
+                    // }
+                }
+            }
+
+            http.open("POST", "/add-to-cart", true);
+            http.send(formData);
+        }
+    }
+
+    const UpdateQuantity = (action, pid) => {
+        // console.log(action, pid);
+        const formData = new FormData();
+        formData.append("action", action);
+        formData.append("pid", pid);
+
+
+        const http = new XMLHttpRequest();
+        http.onreadystatechange = function () {
+            if (this.readyState === 4 && this.status === 200) {
+                console.log(this.response);
+                // if (this.response === "updated") {
+                GetCartProducts();
+                // }
+            }
+        }
+
+        http.open("POST", "/add-to-cart", true);
+        http.send(formData);
+    }
+</script>
+
+</body>
+</html>

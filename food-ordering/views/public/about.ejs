@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>About Us</title>
+    <%- include('../header-files-new') %>
+</head>
+<body class="hidden-bar-wrapper">
+
+<div class="page-wrapper">
+    <% if(customer) { %>
+        <%- include('../users/user_navbar') %>
+    <% } else { %>
+        <%- include('../guest_navbar') %>
+    <% } %>
+
+    <%- include('../bread-crumb') %>
+
+    <section class="login-page-section">
+        <div class="auto-container">
+            <div class="text-center">
+                <h1 class="mb-5">About Us</h1>
+
+                <h5><u>WHO WE ARE</u></h5>
+                <h3 class="mt-4">A modern restaurant with a menu that will make your mouth water. Servicing delicious food since 45
+                    years. Enjoy our seasonal menu and experience the beauty of naturalness</h3>
+            </div>
+        </div>
+    </section>
+
+    <%- include('../footer') %>
+</div>
+
+<%- include("../footer_scripts") %>
+
+</body>
+</html>

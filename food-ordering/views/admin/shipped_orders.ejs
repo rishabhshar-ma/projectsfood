@@ -1,0 +1,215 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Shipped Orders</title>
+    <%- include('../header-files-new') %>
+</head>
+<body class="hidden-bar-wrapper" onload="getShippedOrdersData();">
+
+<div class="page-wrapper">
+    <%- include('../navbar') %>
+    <%- include('../bread-crumb') %>
+
+    <div class="container-fluid py-5">
+        <div class="table-responsive">
+            <table class="table table-bordered table-dark">
+                <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Customer Info</th>
+                    <th>Order Details</th>
+                    <th>Delivery Address</th>
+                    <th>Payment Mode</th>
+                    <th>Payment Status</th>
+                    <th>Deliver Boy Assigned</th>
+                    <th></th>
+                </tr>
+                </thead>
+
+                <tbody id="pendingOrder"></tbody>
+            </table>
+        </div>
+    </div>
+
+    <%- include('../footer') %>
+</div>
+
+<!--MODAL-->
+<div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="exampleModalLabel">Order Received By</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="shippingForm">
+                    <input type="hidden" id="oid">
+
+                    <div class="mb-3">
+                        <label for="name">Customer Name</label>
+                        <input type="text" id="name" class="form-control">
+                    </div>
+                    <div class="mb-3">
+                        <button onclick="DeliverOrderNow()" type="button" class="btn btn-primary">DELIVER NOW</button>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- DB MODAL -->
+<div class="modal fade" id="dbModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="exampleModalLabel">Delivery Boy Details</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <table class="table table-bordered table-dark">
+                    <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Email</th>
+                        <th>Mobile</th>
+                    </tr>
+                    </thead>
+                    <tbody id="dbPersonalData"></tbody>
+                </table>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<%- include("../footer_scripts") %>
+
+<script>
+    function DeliverOrderNow() {
+        var name = document.getElementById("name").value;
+        var oid = document.getElementById("oid").value;
+
+        var formData = new FormData();
+        formData.append("name", name);
+        formData.append("oid", oid);
+
+        var http = new XMLHttpRequest();
+        http.onreadystatechange = function () {
+            if (this.readyState == 4 && this.status == 200) {
+                // console.log(this.response);
+                if (this.response == "error") {
+                    Swal.fire({
+                        icon: "error",
+                        title: "Internal Server Error"
+                    });
+                } else {
+                    Swal.fire({
+                        icon: "success",
+                        title: "Order Delivered Successfully."
+                    });
+                    getShippedOrdersData();
+                    document.getElementById("shippingForm").reset();
+                }
+            }
+        }
+        http.open("POST", "/admin/deliver-order-now", true);
+        http.send(formData);
+    }
+
+    function showDBModal(db_id) {
+        fetch('/admin/getSingleDBInfo/' + db_id).then(res => res.json()).then(data => {
+            let {error, message, row} = data;
+            if (error) {
+                Swal.fire({icon: "error", title: message})
+            } else {
+                let table = `<tr>`;
+                table += `<td>${row.name}</td>`;
+                table += `<td>${row.email}</td>`;
+                table += `<td>${row.mobile}</td>`;
+                table += `</tr>`;
+                document.getElementById("dbPersonalData").innerHTML = table
+            }
+        })
+        $("#dbModal").modal("show");
+    }
+
+    function showModal(order_id) {
+        // console.log(order_id);
+        document.getElementById("oid").value = order_id;
+        $("#exampleModal").modal("show");
+    }
+
+    function getShippedOrdersData() {
+        var http = new XMLHttpRequest();
+        http.onreadystatechange = function () {
+            if (this.readyState === 4 && this.status === 200) {
+                // console.log(JSON.parse(this.response));
+
+                if (this.response === "error") {
+                    Swal.fire({icon: "success", title: 'Internal Server Error'});
+                } else {
+                    var response = JSON.parse(this.response);
+                    // console.log(response);
+                    var table = "";
+
+                    if (response.length === 0) {
+                        table = `<tr><th colspan="7" class="text-center"><h2 class="text-danger">No Data Found</h2></th></tr>`;
+                        document.getElementById("pendingOrder").innerHTML = table;
+                    } else {
+                        for (var i = 0; i < response.length; i++) {
+                            table += `<tr>`;
+                            table += `<td>${i + 1}</td>`;
+                            table += `<td><b>Username</b>: ${response[i].username} <br> <b>Name</b>: ${response[i].name} <br> <b>Mobile</b>: ${response[i].mobile} <br> <b>Email</b>: ${response[i].email}</td>`;
+                            table += `<td><b>Total Bill</b>: ${response[i].grand_total} <br> <b>Date</b>: ${response[i].date_time}</td>`;
+                            table += `<td>${response[i].address}</td>`;
+                            table += `<td>${response[i].payment_mode}</td>`;
+                            table += `<td>${response[i].payment_status}</td>`;
+
+                            table += `<td>`;
+                            table += `<button onclick="showDBModal('${response[i].delivery_boy}')" type="button" class="btn btn-primary btn-sm">View Info</button>`;
+                            table += `</td>`;
+
+                            table += `<td>`;
+                            table += `<button onclick="updateOrderStatus('${response[i].id}', '${response[i].delivery_boy}')" type="button" class="btn btn-warning btn-sm mb-3">Delivered</button><br>`;
+                            table += `<a href="/admin/order-details?id=${response[i].id}" class="btn btn-success btn-sm">Order Details</a>`;
+                            table += `</td>`;
+
+                            table += `</tr>`;
+                        }
+                        document.getElementById("pendingOrder").innerHTML = table;
+                    }
+                }
+            }
+        }
+        http.open("GET", "/admin/fetch-shipped-order", true);
+        http.send();
+    }
+
+    function updateOrderStatus(order_id, db_id) {
+        if (confirm('Are you sure')) {
+            fetch('/admin/deliver-food-now/' + order_id + '/' + db_id).then(res => res.json()).then(data => {
+                let {error, message} = data;
+                if (error) {
+                    Swal.fire({icon: 'error', title: message});
+                } else {
+                    getShippedOrdersData();
+                    Swal.fire({icon: 'success', title: message, timer: 2000});
+                }
+            })
+        }
+    }
+</script>
+
+</body>
+</html>

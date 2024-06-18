@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Manage Orders</title>
+    <%- include('../header-files-new') %>
+</head>
+<body class="hidden-bar-wrapper">
+<div class="page-wrapper">
+    <%- include('../navbar') %>
+    <%- include('../bread-crumb') %>
+
+    <div class="container-fluid py-5">
+        <div class="table-responsive">
+            <table class="table table-bordered table-dark">
+                <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Product</th>
+                    <th>Price</th>
+                    <th>Discount (%)</th>
+                    <th>Net Price</th>
+                    <th>Quantity</th>
+                    <th>Total</th>
+                </tr>
+                </thead>
+                <tbody>
+                <% records.forEach((x, i) => { %>
+                    <tr>
+                        <td><%= i + 1 %></td>
+                        <td>
+                            <img src="http://localhost:5000//<%- x.photo %>" alt="<%= x.product_name %>" style="width: 50px">
+                            <p class="mb-0"><%= x.product_name %></p>
+                        </td>
+                        <td>&#x20b9;<%= x.price %></td>
+                        <td><%= x.discount %>%</td>
+                        <td>&#x20b9;<%= x.discounted_price %></td>
+                        <td><%= x.quantity %></td>
+                        <td>&#x20b9;<%= parseInt(x.discounted_price) * x.quantity %></td>
+                    </tr>
+                <% }) %>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <%- include('../footer') %>
+</div>
+
+<%- include("../footer_scripts") %>
+
+</body>
+</html>

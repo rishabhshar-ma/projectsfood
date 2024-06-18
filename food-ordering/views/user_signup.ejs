@@ -1,0 +1,176 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Create Account</title>
+    <style>
+        .error {
+            color: orangered !important;
+        }
+    </style>
+    <%- include('header-files-new') %>
+</head>
+<body class="hidden-bar-wrapper">
+
+<div class="page-wrapper">
+    <% if(customer) { %>
+        <%- include('users/user_navbar') %>
+    <% } else { %>
+        <%- include('guest_navbar') %>
+    <% } %>
+
+    <%- include('bread-crumb') %>
+
+    <div class="container py-5">
+        <div class="card shadow">
+            <div class="card-header">
+                <h2 class="">Create Account</h2>
+            </div>
+            <div class="card-body">
+                <div class="">
+                    <form id="userSignup">
+                        <div class="row">
+                            <div class="col-md-4 mb-3 form-group">
+                                <label for="username">Username</label>
+                                <input data-rule-required="true" type="text" id="username" name="username"
+                                       class="form-control">
+                            </div>
+
+                            <div class="col-md-4 mb-3 form-group">
+                                <label for="password">Password</label>
+                                <input data-rule-required="true" type="password" id="password" name="password"
+                                       class="form-control">
+                            </div>
+
+                            <div class="col-md-4 mb-3 form-group">
+                                <label for="confirm">Confirm Password</label>
+                                <input data-rule-required="true" type="password" id="confirm" name="confirm"
+                                       class="form-control">
+                            </div>
+
+                            <div class="col-md-4 mb-3 form-group">
+                                <label for="name">Name</label>
+                                <input data-rule-required="true" type="text" id="name" name="name" class="form-control">
+                            </div>
+
+                            <div class="col-md-4 mb-3 form-group">
+                                <label for="email">Email</label>
+                                <input data-rule-required="true" type="email" id="email" name="email"
+                                       class="form-control">
+                            </div>
+
+                            <div class="col-md-4 mb-3 form-group">
+                                <label for="mobile">Mobile Number</label>
+                                <input data-rule-required="true" type="tel" id="mobile" name="mobile"
+                                       class="form-control">
+                            </div>
+
+                            <div class="col-md-8 mb-3 form-group">
+                                <label for="photo">Upload Photo</label>
+                                <input data-rule-required="true" type="file" id="photo" name="photo"
+                                       class="form-control">
+                            </div>
+
+                            <div class="col-md-4 mb-3">
+                                <label>Gender</label> <br>
+                                <input checked type="radio" id="Male" name="gender" value="Male">
+                                <label for="Male">Male</label> <br>
+                                <input type="radio" id="Female" name="gender" value="Female">
+                                <label for="Female">Female</label>
+                            </div>
+
+                            <div class="col-md-12 mb-3 form-group">
+                                <label for="address">Address</label>
+                                <textarea data-rule-required="true" name="address" id="address"
+                                          class="form-control"></textarea>
+                            </div>
+
+                            <div class="col-md-12 mb-3">
+                                <button onclick="UserSignup()" class="btn btn-primary" type="button">
+                                    SIGNUP
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+
+                    <p class="text-right">Existing user? <a href="/user-login">Login</a></p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <%- include('footer') %>
+
+</div>
+
+<%- include("footer_scripts") %>
+
+<script>
+    let UserSignup = () => {
+        if ($("#userSignup").valid()) {
+            let controls = document.getElementById("userSignup").elements;
+            let formData = new FormData();
+
+            for (let item of controls) {
+                if (item.type !== "button") {
+                    if (item.type === "file") {
+                        formData.append(item.id, item.files[0]);
+                    } else if (item.type === "radio") {
+                        if (item.checked) {
+                            formData.append(item.name, item.value);
+                        }
+                    } else {
+                        formData.append(item.id, item.value);
+                    }
+                }
+            }
+
+            let http = new XMLHttpRequest();
+            http.onreadystatechange = function () {
+                if (this.readyState === 4 && this.status === 200) {
+                    // console.log(this.response);
+                    if (this.response === "empty") {
+                        Swal.fire({
+                            icon: "warning",
+                            title: "All fields are required."
+                        });
+                    } else if (this.response === "photo") {
+                        Swal.fire({
+                            icon: "warning",
+                            title: "Please Upload Your Photo."
+                        });
+                    } else if (this.response === "notMatched") {
+                        Swal.fire({
+                            icon: "warning",
+                            title: "Password & Confirm Password must be same."
+                        });
+                    } else if (this.response === "notUploaded" || this.response === "error") {
+                        Swal.fire({
+                            icon: "warning",
+                            title: "Internal Server Error. Try Again Later."
+                        });
+                    } else if (this.response === "userExist") {
+                        Swal.fire({
+                            icon: "warning",
+                            title: "Username already exist."
+                        });
+                    } else {
+                        Swal.fire({
+                            icon: "success",
+                            title: "User Registered."
+                        });
+                        document.getElementById("userSignup").reset();
+                    }
+                }
+            }
+            http.open("POST", "/user-signup", true);
+            http.send(formData);
+        }
+    }
+</script>
+
+</body>
+</html>

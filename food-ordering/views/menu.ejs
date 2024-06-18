@@ -1,0 +1,215 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Our Menu</title>
+    <style>
+        select {
+
+        }
+
+        option {
+            font-size: 18px;
+        }
+    </style>
+    <%- include('header-files-new') %>
+</head>
+<body class="hidden-bar-wrapper">
+
+<div class="page-wrapper">
+    <% if(customer) { %>
+        <%- include('users/user_navbar') %>
+    <% } else { %>
+        <%- include('guest_navbar') %>
+    <% } %>
+
+    <%- include('bread-crumb') %>
+
+    <!--    <section class="menu-section-six" style="background-image: url(assets/images/background/pattern-11.png)">-->
+    <section class="login-page-section">
+        <div class="auto-container">
+            <div class="card shadow">
+                <div class="card-body">
+                    <div class="">
+                        <div class="row">
+                            <!-- Category -->
+                            <div class="col-md-6 form-group">
+                                <label for="category">Category</label>
+                                <select onchange="getSubCategoryFromServer(this.value)" name="category"
+                                        id="category" class="form-control">
+                                    <option value="">Select Category</option>
+                                </select>
+                            </div>
+
+                            <!-- Sub-Category -->
+                            <div class="col-md-6 form-group">
+                                <label for="sub-category">Sub-Category</label>
+                                <select onchange="getProductsFromServer(this.value)" name="sub-category"
+                                        id="sub-category" class="form-control">
+                                    <option value="">Select Sub-Category</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="menuDiv" hidden>
+                <!-- Sec Title -->
+                <div class="sec-title centered mt-5">
+                    <div class="title" id="menu-category"></div>
+                    <h2 id="menu-sub-category"></h2>
+                </div>
+
+                <div id="menu-items" class="row clearfix"></div>
+            </div>
+        </div>
+    </section>
+
+    <%- include('footer') %>
+</div>
+
+<%- include("footer_scripts") %>
+
+<script>
+    $(document).ready(() => {
+        getCategory();
+    });
+
+    const getCategory = () => {
+        let http = new XMLHttpRequest();
+        http.onreadystatechange = function () {
+            if (this.readyState === 4 && this.status === 200) {
+                let response = JSON.parse(this.response);
+                let html = `<option value="">Select Category</option>`;
+                response.forEach(value => {
+                    let {category_id, category_name} = value;
+                    html += `<option value="${category_id}">${category_name}</option>`;
+                });
+                $("#category").html(html);
+            }
+        }
+        http.open("GET", "/get-category-from-server", true);
+        http.send();
+    }
+
+    const getSubCategoryFromServer = (id) => {
+        // console.log(id);
+
+        if (id === "") {
+            $("#menu-items").html('');
+            $("#sub-category").html('<option>Select Sub-Category</option>');
+            document.getElementById("menuDiv").hidden = true;
+            Swal.fire({icon: "warning", title: "Please Select Category"});
+        }
+
+        let http = new XMLHttpRequest();
+        http.onreadystatechange = function () {
+            if (this.readyState === 4 && this.status === 200) {
+                document.getElementById("menuDiv").hidden = true;
+                let response = JSON.parse(this.response);
+                let html = `<option value="">Select Sub-Category</option>`;
+                response.forEach(value => {
+                    let {subcategory_id, subcategory_name} = value;
+                    html += `<option value="${subcategory_id}">${subcategory_name}</option>`;
+                });
+                $("#sub-category").html(html);
+            }
+        }
+        http.open("GET", `/fetch-subcategory-related-to-category?category_id=${id}`, true);
+        http.send();
+    }
+
+    const getProductsFromServer = (id) => {
+        // console.log(id);
+        if (id === "") {
+            $("#menu-items").html('');
+            document.getElementById("menuDiv").hidden = true;
+            Swal.fire({icon: "warning", title: "Please Select Sub-Category"});
+        } else {
+            let http = new XMLHttpRequest();
+            http.onreadystatechange = function () {
+                if (this.readyState === 4 && this.status === 200) {
+                    // console.log(this.response);
+                    document.getElementById("menuDiv").hidden = true;
+
+                    if (this.response === "error") {
+                        Swal.fire({
+                            icon: "error",
+                            title: "Internal Server Error."
+                        });
+                    } else {
+                        let response = JSON.parse(this.response);
+                        // console.log(response);
+
+                        if (response.length === 0) {
+                            Swal.fire({
+                                icon: "warning",
+                                title: "No Data Found"
+                            });
+                        } else {
+                            document.getElementById("menuDiv").hidden = false;
+                            $("#menu-category").text(response[0].category_name);
+                            $("#menu-sub-category").text(response[0].subcategory_name);
+
+                            let html = ``;
+                            response.forEach(value => {
+                                html += `<div class="menu-block-eight col-lg-6 col-md-12 col-sm-12">`;
+                                html += `<div class="inner-box shadow">`;
+                                html += `<div class="content">`;
+
+                                html += `<div class="menu-image">`;
+                                html += `<a href="javascript:void(0);"><img src="/${value.photo}" alt="" /></a>`;
+                                html += `</div>`;
+
+                                html += `<h6><a href="#">${value.product_name}</a></h6>`;
+                                //html += `<div class="text">${value.description}</div>`;
+                                html += `<p style="font-size: 1rem">&#x20b9;${Math.round(value.price - value.price * value.discount / 100)}</p>`;
+                                html += '<a onclick=\'AddToCart(' + JSON.stringify(value) + ')\' href="javascript:void(0);" class="cart-btn theme-btn">Add To Cart</a>';
+
+                                html += `</div>`;
+                                html += `</div>`;
+                                html += `</div>`;
+                            });
+                            $("#menu-items").html(html);
+                        }
+                    }
+                }
+            }
+            http.open("GET", `/get-products-according-to-sub-category?id=${id}`, true);
+            http.send();
+        }
+    }
+
+    const AddToCart = (object) => {
+        // console.log(object);
+
+        const formData = new FormData();
+        formData.append("action", "add");
+        formData.append("productObject", JSON.stringify(object));
+
+        const http = new XMLHttpRequest();
+        http.onreadystatechange = function () {
+            if (this.readyState === 4 && this.status === 200) {
+                // console.log(this.response);
+
+                if (this.response === "jwt") {
+                    window.location.href = "/user-login"
+                } else if (this.response === "error") {
+                    Swal.fire({icon: "error", title: "Internal Server Error"});
+                } else if (this.response === "success") {
+                    getCartCount();
+                    Swal.fire({icon: "success", title: "Item Added In Cart"});
+                }
+            }
+        }
+        http.open("POST", "/add-to-cart", true);
+        http.send(formData);
+    }
+</script>
+
+</body>
+</html>

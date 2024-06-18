@@ -1,0 +1,126 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>My Orders</title>
+    <%- include('../header-files-new') %>
+</head>
+<body class="hidden-bar-wrapper" onload="getMyOrdersData();">
+
+<div class="page-wrapper">
+    <%- include("user_navbar") %>
+    <%- include('customer-bread-crumb') %>
+
+    <div class="container py-5">
+        <h2>My Orders</h2>
+        <div class="table-responsive mt-3">
+            <table class="table table-bordered table-hover">
+                <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Order Date</th>
+                    <th>Delivery Address</th>
+                    <th>Payment Mode</th>
+                    <th>Payment Status</th>
+                    <th>Order Details</th>
+                    <th>Order Status</th>
+                </tr>
+                </thead>
+                <tbody id="pendingOrder"></tbody>
+            </table>
+        </div>
+    </div>
+
+    <%- include('../footer') %>
+</div>
+
+<%- include("../footer_scripts") %>
+
+<script>
+    function getMyOrdersData() {
+        const http = new XMLHttpRequest();
+        http.onreadystatechange = function () {
+            if (this.readyState === 4 && this.status === 200) {
+                // console.log(JSON.parse(this.response));
+
+                if (this.response === "jwt") {
+                    window.location.href = "/user-login"
+                } else if (this.response === "error") {
+                    Swal.fire({icon: "success", title: 'Internal Server Error'});
+                } else {
+                    let response = JSON.parse(this.response);
+                    // console.log(response);
+
+                    let table = "";
+
+                    if (response.length === 0) {
+                        table = `<tr><th colspan="7" class="text-center"><h2 class="text-danger">No Data Found</h2></th></tr>`;
+                        document.getElementById("pendingOrder").innerHTML = table;
+                    } else {
+                        for (let i = 0; i < response.length; i++) {
+                            table += `<tr>`;
+                            table += `<td>${i + 1}</td>`;
+                            table += `<td>${response[i].date_time}</td>`;
+                            table += `<td>${response[i].address}</td>`;
+                            table += `<td>${response[i].payment_mode}</td>`;
+                            table += `<td>${response[i].payment_status}</td>`;
+                            table += `<td><a href="/users/order-details?order_id=${response[i].id}" class="">View Details</a></td>`;
+
+                            if (response[i].order_status === "Pending") {
+                                table += `<td class="text-danger">${response[i].order_status} <i class="fa fa-clock-o"></i></td>`;
+                            } else if (response[i].order_status === "Assigned") {
+                                table += `<td class="text-warning">${response[i].order_status} <i class="fa fa-user"></i></td>`;
+                            } else if (response[i].order_status === "Delivered") {
+                                table += `<td class="text-success">${response[i].order_status} <i class="fa fa-check"></i></td>`;
+                            }
+
+
+                            if (response[i].order_status === "Pending") {
+                                table += `<td>`;
+                                table += `<button onclick="CancelOrder(${response[i].id})" type="button" class="btn btn-danger btn-sm">Cancel Order</button>`;
+                                table += `</td>`;
+                            }
+
+                            table += `</tr>`;
+                        }
+                        document.getElementById("pendingOrder").innerHTML = table;
+                    }
+                }
+            }
+        }
+        http.open("GET", "/users/fetch-my-order", true);
+        http.send();
+    }
+
+    const CancelOrder = (id) => {
+        // console.log(id);
+        if (confirm("Are you sure?")) {
+            let http = new XMLHttpRequest();
+            http.onreadystatechange = function () {
+                if (this.readyState === 4 && this.status === 200) {
+                    // console.log(this.response);
+                    if (this.response === "error") {
+                        Swal.fire({
+                            icon: "error",
+                            title: "Internal Server Error"
+                        });
+                    } else {
+                        getMyOrdersData();
+                        Swal.fire({
+                            icon: "success",
+                            title: "Order Cancelled"
+                        });
+                    }
+                }
+            }
+            http.open("GET", `/users/cancel-order?id=${id}`, true);
+            http.send();
+        }
+    }
+</script>
+
+</body>
+</html>

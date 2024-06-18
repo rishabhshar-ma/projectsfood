@@ -1,0 +1,314 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+        content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Shopping Cart</title>
+    <%- include('header-files-new') %>
+</head>
+
+<body class="hidden-bar-wrapper" onload="GetCartProducts();validatePaymentTime">
+    <script>
+        let checkPaymentMode = () => {
+            const now = new Date();
+            const currentHour = now.getHours();
+
+            if (currentHour >= 11 && currentHour < 23) {
+                let payment_mode = document.getElementById("COD").value;
+
+                if (document.getElementById("Online").checked) { // Online
+                    payment_mode = document.getElementById("Online").value;
+                    PayNow(); // Razorpay
+                } else { // COD
+                    orderNow(payment_mode, null);
+                }
+            } else {
+                Swal.fire({
+                    position: "center",
+                    icon: "error",
+                    title: "Payment only allowed between 11 AM and 11 PM",
+                    showConfirmButton: false,
+                    timer: 3000
+                });
+            }
+        };
+
+        function validatePaymentTime() {
+            const button = document.getElementById("payNowButton");
+            const now = new Date();
+            const currentHour = now.getHours();
+
+            if (currentHour >= 11 && currentHour < 23) {
+                button.disabled = false;
+            } else {
+                button.disabled = true;
+            }
+        }
+    </script>
+
+    <div class="page-wrapper">
+        <% if(customer) { %>
+            <%- include('users/user_navbar') %>
+                <% } else { %>
+                    <%- include('guest_navbar') %>
+                        <% } %>
+
+                            <%- include('bread-crumb') %>
+
+                                <div class="container py-5">
+                                    <div class="">
+                                        <table class="table table-bordered table-dark">
+                                            <thead>
+                                                <tr>
+                                                    <th>#</th>
+                                                    <th>Product Name</th>
+                                                    <th>Price</th>
+                                                    <th>Discount</th>
+                                                    <th>Net Price</th>
+                                                    <th>Quantity</th>
+                                                    <th>Total</th>
+                                                    <th>Remove</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody id="shoppingCart"></tbody>
+                                        </table>
+
+                                        <div class="mt-5" id="billDiv" hidden>
+                                            <div class="card">
+                                                <div class="card-header">
+                                                    <h2>Delivery at</h2>
+                                                </div>
+                                                <div class="card-body">
+                                                    <p style="color: #C19D60; font-size: 1.1rem">
+                                                        <i class="fa fa-phone"></i>
+                                                        <%= customer.fullname %>, +91-<%= customer.mobile %>
+                                                    </p>
+                                                    <hr>
+                                                    <form id="checkoutForm">
+                                                        <div class="row">
+                                                            <div class="col-md-6 mb-3">
+                                                                <label for="address">Location <span
+                                                                        class="text-danger">*</span></label>
+                                                                <textarea name="address" id="address"
+                                                                    class="form-control"><%= address %></textarea>
+                                                            </div>
+
+                                                            <div class="col-md-6 mb-3">
+                                                                <label for="remarks">Remarks <span
+                                                                        class="text-muted">(Optional)</span></label>
+                                                                <textarea name="remarks" id="remarks"
+                                                                    class="form-control"></textarea>
+                                                            </div>
+
+                                                            <div class="col-md-6 mb-3">
+                                                                <label>Payment options</label> <br>
+                                                                <input type="radio" name="payment" id="COD" value="COD">
+                                                                <label for="COD">COD</label> <br>
+                                                                <input checked type="radio" name="payment" id="Online"
+                                                                    value="Online">
+                                                                <label for="Online">Online</label>
+                                                            </div>
+
+                                                            <div class="col-md-12 mb-3">
+                                                                <button id="payNowButton" onclick="checkPaymentMode()"
+                                                                    type="button" class="theme-btn btn-style-two">
+                                                                    Pay Now
+                                                                </button>
+                                                            </div>
+                                                        </div>
+                                                    </form>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <%- include('footer') %>
+    </div>
+
+    <%- include("footer_scripts") %>
+        <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+
+        <script>
+            const GetCartProducts = () => {
+                const formData = new FormData();
+                formData.append("action", "get-products");
+
+                const http = new XMLHttpRequest();
+                http.onreadystatechange = function () {
+                    if (this.readyState === 4 && this.status === 200) {
+                        const response = JSON.parse(this.response);
+                        // console.log(response);
+
+                        // if (this.response.length <= 0) {
+                        if (response.length === 0) {
+                            document.getElementById("billDiv").hidden = true;
+                            document.getElementById("shoppingCart").innerHTML = "<tr><td colspan='7' class='text-danger text-center'><h4>No Products in Cart</h4></td></tr>"
+                        } else {
+                            document.getElementById("billDiv").hidden = false;
+                            const cart = response;
+
+                            let tbodyHTML = ``;
+                            let grandTotal = 0;
+                            let discount = 0;
+                            let netPrice = 0;
+
+                            cart.forEach((value, index) => {
+                                discount = parseInt(value.price) * parseInt(value.discount) / 100;
+                                netPrice = parseInt(value.price) - discount;
+                                grandTotal += netPrice * parseInt(value.quantity);
+
+                                tbodyHTML += `<tr>`;
+                                tbodyHTML += `<td>${index + 1}</td>`;
+
+                                tbodyHTML += `<td>`;
+                                tbodyHTML += `<img src="${value.photo}" style="height: 60px !important; border-radius: 6px" alt=""> <br>`;
+                                tbodyHTML += `${value.product_name}`;
+                                tbodyHTML += `</td>`;
+
+                                tbodyHTML += `<td>&#x20b9;${value.price}</td>`;
+                                tbodyHTML += `<td>${value.discount}%</td>`;
+
+                                tbodyHTML += `<td>&#x20b9;${netPrice}</td>`;
+
+                                tbodyHTML += `<td>`;
+                                tbodyHTML += `<button onclick="UpdateQuantity('minus', ${value.id})" type="button" class="btn btn-sm btn-warning"><i class="fa fa-minus"></i></button>`;
+                                tbodyHTML += `<span class="mx-3">${value.quantity}</span>`;
+                                tbodyHTML += `<button onclick="UpdateQuantity('plus', ${value.id})" type="button" class="btn btn-sm btn-warning"><i class="fa fa-plus"></i></button>`;
+                                tbodyHTML += `</td>`;
+
+                                tbodyHTML += `<td>&#x20b9;${netPrice * parseInt(value.quantity)}</td>`;
+
+                                tbodyHTML += `<td>`;
+                                tbodyHTML += `<button onclick="RemoveProduct(${value.id})" type="button" class="btn btn-sm btn-danger"><i class="fa fa-times"></i></button>`;
+                                tbodyHTML += `</td>`;
+
+                                tbodyHTML += `</tr>`;
+                            });
+
+                            tbodyHTML += `<tr>`;
+                            tbodyHTML += `<td colspan="6"></td>`;
+                            tbodyHTML += `<td style="font-size: 1.2rem">Total Bill: &#x20b9;<span id="grandTotal">${grandTotal}</span></td>`;
+                            tbodyHTML += `<td></td>`;
+                            tbodyHTML += `</tr>`;
+
+
+                            document.getElementById("shoppingCart").innerHTML = tbodyHTML;
+                        }
+                    }
+                }
+                http.open("POST", "/add-to-cart", true);
+                http.send(formData);
+            }
+
+            const RemoveProduct = (pid) => {
+                if (confirm("Are you sure")) {
+                    const formData = new FormData();
+                    formData.append("action", "remove");
+                    formData.append("pid", pid);
+
+                    const http = new XMLHttpRequest();
+                    http.onreadystatechange = function () {
+                        if (this.readyState === 4 && this.status === 200) {
+                            // console.log(this.response);
+                            // if (this.response == "updated") {
+                            GetCartProducts();
+                            // }
+                        }
+                    }
+
+                    http.open("POST", "/add-to-cart", true);
+                    http.send(formData);
+                }
+            }
+
+            const UpdateQuantity = (action, pid) => {
+                // console.log(action, pid);
+                const formData = new FormData();
+                formData.append("action", action);
+                formData.append("pid", pid);
+
+
+                const http = new XMLHttpRequest();
+                http.onreadystatechange = function () {
+                    if (this.readyState == 4 && this.status == 200) {
+                        // console.log(this.response);
+                        if (this.response == "updated") {
+                            GetCartProducts();
+                        }
+                    }
+                }
+
+                http.open("POST", "/add-to-cart", true);
+                http.send(formData);
+            }
+
+            const PayNow = () => {
+                let amount = parseInt(document.getElementById("grandTotal").innerText);
+                let options = {
+                    key: "rzp_test_dRWiKHS7zr2Gki",
+                    amount: amount * 100,
+                    name: "Aahar",
+                    description: "Online Payment Gateway",
+                    image: "https://demo.hasthemes.com/aahar-preview/aahar/images/logo/foody.png",
+                    handler: function (response) {
+                        orderNow('Online', response)
+                    },
+                    prefill: {
+                        name: "",
+                        email: "",
+                    },
+                    notes: {
+                        address: "",
+                    },
+                    theme: {
+                        color: "#942436",
+                    },
+                };
+                let rzp1 = new Razorpay(options);
+                rzp1.open();
+            };
+
+            // let checkPaymentMode = () => {
+            //     let payment_mode = document.getElementById("COD").value;
+
+            //     if (document.getElementById("Online").checked) { // Online
+            //         payment_mode = document.getElementById("Online").value;
+            //         PayNow(); // Razorpay
+            //     } else { // COD
+            //         orderNow(payment_mode, null)
+            //     }
+            // }
+
+            function orderNow(payment_mode, rzp_response) {
+                if (document.getElementById("address").value === "") {
+                    alert("Please enter delivery location.");
+                    return false;
+                }
+
+                let formData = new FormData();
+                formData.append("grandTotal", document.getElementById("grandTotal").innerText);
+                formData.append("address", document.getElementById("address").value);
+                formData.append("remarks", document.getElementById("remarks").value);
+                formData.append("payment_mode", payment_mode);
+
+                let http = new XMLHttpRequest();
+                http.onreadystatechange = function () {
+                    if (this.readyState === 4 && this.status === 200) {
+                        // console.log(this.response);
+                        if (this.response === "success") {
+                            window.location.href = "/users/thank-you";
+                        }
+                    }
+                }
+                http.open("POST", "/users/place-new-order", true);
+                http.send(formData);
+            }
+        </script>
+
+</body>
+
+</html>

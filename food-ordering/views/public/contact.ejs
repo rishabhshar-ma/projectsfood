@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Contact Us</title>
+    <%- include('../header-files-new') %>
+</head>
+<body class="hidden-bar-wrapper">
+
+<div class="page-wrapper">
+    <% if(customer) { %>
+        <%- include('../users/user_navbar') %>
+    <% } else { %>
+        <%- include('../guest_navbar') %>
+    <% } %>
+
+    <%- include('../bread-crumb') %>
+
+    <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3396.408283820425!2d74.86030577504926!3d31.650047840724746!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x391964981bdb9665%3A0xcae6bcd772fe224b!2sLa%20Roma%20Pizzeria!5e0!3m2!1sen!2sin!4v1716902480294!5m2!1sen!2sin"
+            width="100%" height="400" style="border:0;" allowfullscreen="" loading="lazy"
+            referrerpolicy="no-referrer-when-downgrade"></iframe>
+
+    <section class="login-page-section">
+        <div class="auto-container">
+            <div class="row">
+                <div class="col-md-4 text-center  shadow py-4">
+                    <h4 class="mb-3">Lunch Time</h4>
+                    <p class="mb-0">Monday to Sunday</p>
+                    <p class="mb-0">Mon - Sat 11.00AM - 2.30PM</p>
+                </div>
+
+                <div class="col-md-4 text-center shadow py-4">
+                    <h4 class="mb-3">Contact Info</h4>
+                    <p class="mb-0"><i class="fa fa-envelope"></i> booking@delici.com</p>
+                    <p class="mb-0"><i class="fa fa-phone"></i> +91 12345 12345</p>
+                </div>
+
+                <div class="col-md-4 text-center shadow py-4">
+                    <h4 class="mb-3">Dinner Time</h4>
+                    <p class="mb-0">Monday to Sunday</p>
+                    <p class="mb-0">Mon - Sat 5.30PM - 11.00PM</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <%- include('../footer') %>
+</div>
+
+<%- include("../footer_scripts") %>
+
+</body>
+</html>

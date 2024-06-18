@@ -1,0 +1,111 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Login</title>
+    <style>
+        .error {
+            color: orangered !important;
+        }
+    </style>
+    <%- include('header-files-new') %>
+</head>
+<body class="hidden-bar-wrapper">
+
+<div class="page-wrapper">
+    <%- include('guest_navbar') %>
+
+    <%- include('bread-crumb') %>
+
+    <section class="login-page-section">
+        <div class="auto-container">
+            <div class="col-md-6 offset-md-3">
+                <div class="card shadow">
+                    <div class="card-header">
+                        <h2 class="">Sign in</h2>
+                    </div>
+                    <div class="card-body">
+                        <div class="">
+                            <form id="userSignup">
+                                <div class="form-group mb-3">
+                                    <label for="username">Username <span class="text-danger">*</span></label>
+                                    <input data-rule-required="true" type="text" id="username" name="username"
+                                           class="form-control">
+                                </div>
+
+                                <div class="form-group mb-3">
+                                    <label for="password">Password <span class="text-danger">*</span></label>
+                                    <input data-rule-required="true" type="password" id="password" name="password"
+                                           class="form-control">
+                                </div>
+
+                                <div class="mb-3">
+                                    <button onclick="UserLogin()" class="btn btn-primary"
+                                            type="button">LOGIN
+                                    </button>
+                                </div>
+                            </form>
+
+                            <p class="text-right">New user? <a href="/user-signup">Register Now</a></p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    <!-- End Login Page Section -->
+
+    <%- include('footer') %>
+
+</div>
+
+<%- include("footer_scripts") %>
+
+<script>
+    var UserLogin = () => {
+        if ($("#userSignup").valid()) {
+            var username = document.getElementById("username").value;
+            var password = document.getElementById("password").value;
+
+            var formData = new FormData();
+            formData.append("username", username);
+            formData.append("password", password);
+
+            var http = new XMLHttpRequest();
+            http.onreadystatechange = function () {
+                if (this.readyState == 4 && this.status == 200) {
+                    // console.log(this.response);
+                    if (this.response == "error") {
+                        Swal.fire({
+                            icon: "error",
+                            title: "Internal Server Error."
+                        });
+                    } else if (this.response == "invalid") {
+                        Swal.fire({
+                            icon: "warning",
+                            title: "Invalid Username or Password."
+                        });
+                    } else {
+                        Swal.fire({
+                            icon: "success",
+                            title: "Login Success."
+                        });
+
+                        setTimeout(() => {
+                            window.location.href = "/users/";
+                        }, 1000);
+                    }
+                }
+            }
+
+            http.open("POST", "/user-login", true);
+            http.send(formData);
+        }
+    }
+</script>
+
+</body>
+</html>

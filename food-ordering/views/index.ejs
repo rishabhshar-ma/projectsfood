@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>DELICI</title>
+    <%- include('header-files-new') %>
+</head>
+<body class="hidden-bar-wrapper">
+<div class="page-wrapper">
+    <% if(customer) { %>
+        <%- include('users/user_navbar') %>
+    <% } else { %>
+        <%- include('guest_navbar') %>
+    <% } %>
+
+    <!-- Banner Section -->
+    <%- include('components/banner') %>
+
+    <!-- Services Section -->
+    <section class="services-section">
+        <div class="auto-container">
+            <!-- Sec Title -->
+            <div class="sec-title centered">
+                <div class="title">Our Services</div>
+            </div>
+            <div class="row clearfix">
+
+                <!-- Service Block -->
+                <div class="service-block col-lg-4 col-md-6 col-sm-12">
+                    <div class="inner-box">
+                        <span class="icon flaticon-alarm-clock"></span>
+                        <h4><a href="/">60 Minutes Delivery</a></h4>
+                    </div>
+                </div>
+
+                <!-- Service Block -->
+                <div class="service-block col-lg-4 col-md-6 col-sm-12">
+                    <div class="inner-box">
+                        <div class="icon flaticon-delivery"></div>
+                        <h4><a href="/">Free Home Delivery</a></h4>
+                    </div>
+                </div>
+
+                <!-- Service Block -->
+                <div class="service-block col-lg-4 col-md-6 col-sm-12">
+                    <div class="inner-box">
+                        <div class="icon flaticon-like-1"></div>
+                        <h4><a href="/">Quality Guarantee</a></h4>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </section>
+
+    <!-- Menu Section -->
+    <%- include('components/menu') %>
+
+    <%- include('footer') %>
+</div>
+
+<%- include('footer_scripts') %>
+
+</body>
+</html>
